@@ -25,7 +25,7 @@ level = 1
 MAX_LEVELS = 5
 # Biến dùng để người chơi có thể nâng cấp
 speed_bullet = 0
-dame_bullet = 0
+dame_bullet = 100
 health_bonus = 1500
 coin_player = 100000
 health_tile = 100
@@ -73,6 +73,7 @@ background = pygame.transform.scale(background, (int(SCREEN_WIDTH), int(SCREEN_H
 # Cái ảnh settings của game dành cho player
 setting_game_image = pygame.image.load('MainGame/settings_game.png').convert_alpha()
 setting_game_image = pygame.transform.scale(setting_game_image, (350, 370))
+win_game = pygame.image.load('MainGame/wingame.png').convert_alpha()
 '''================================================================================================'''
 
 '''==================================== Các nút ở cửa sổ chính ===================================='''
@@ -152,7 +153,6 @@ win_game = pygame.mixer.Sound('Audio/win.wav')
 win_game.set_volume(0.3)
 play_audio = False
 '''=================================================================================================='''
-
 # Nhóm sprite
 skeleton_group = pygame.sprite.Group()
 bigger_group = pygame.sprite.Group()
@@ -463,7 +463,7 @@ class Skeleton(pygame.sprite.Sprite):
         self.idling = False
         self.idling_counter = 0
         # Biến tầm nhìn
-        self.vision = pygame.Rect(0, 0, 250, self.height)
+        self.vision = pygame.Rect(0, 0, 100, self.height)
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -524,7 +524,9 @@ class Skeleton(pygame.sprite.Sprite):
         # Ngăn chặn đập đầu dô tường
         if self.collision_rect.left + dx < 0 or self.collision_rect.right + dx > SCREEN_WIDTH:
             dx = 0
-
+        if self.rect.top > SCREEN_HEIGHT:
+            self.health = 0
+            dy = 0
         # Cập nhật vị trí của collision_rect
         self.collision_rect.x += dx
         self.collision_rect.y += dy
@@ -536,12 +538,12 @@ class Skeleton(pygame.sprite.Sprite):
     def ai(self, player):
         # Chỗ này để cập nhật tầm nhìn của skeleton
         if self.direction == -1:
-            self.vision.x = self.rect.centerx + 250 * self.direction
+            self.vision.x = self.rect.centerx + 100 * self.direction
         else:
             self.vision.x = self.rect.centerx
         self.vision.y = self.rect.y
         if self.health > 0:
-            if self.vision.colliderect(player.coin_collision) and player.health > 0:
+            if self.vision.colliderect(player.rect) and player.health > 0:
                 self.idling = True
                 self.idling_counter = 10
                 self.speed = 2
@@ -671,7 +673,7 @@ class Bigger(pygame.sprite.Sprite):
         self.height = self.image.get_height()
         self.collision_rect = pygame.Rect(self.rect.centerx + 5 * scale, self.rect.top - 9 * scale, 10 * scale, 50 - scale)
         # Define variable to check vision player
-        self.vision = pygame.Rect(0, 0, 250, self.height)
+        self.vision = pygame.Rect(0, 0, 150, self.height)
 
     def update_action(seLf, new_action):
         if seLf.action != new_action:
@@ -732,7 +734,9 @@ class Bigger(pygame.sprite.Sprite):
         # Ngăn chặn đập đầu dô tường
         if self.collision_rect.left + dx < 0 or self.collision_rect.right + dx > SCREEN_WIDTH:
             dx = 0
-
+        if self.rect.top > SCREEN_HEIGHT:
+            self.health = 0
+            dy = 0
         # Cập nhật vị trí của collision_rect
         self.collision_rect.x += dx
         self.collision_rect.y += dy
@@ -744,12 +748,12 @@ class Bigger(pygame.sprite.Sprite):
     def ai(self, player):
         # Chỗ này để cập nhật tầm nhìn của skeleton
         if self.direction == -1:
-            self.vision.x = self.rect.centerx + 250 * self.direction
+            self.vision.x = self.rect.centerx + 150 * self.direction
         else:
             self.vision.x = self.rect.centerx
         self.vision.y = self.rect.y
         if self.health > 0:
-            if self.vision.colliderect(player.coin_collision) and player.health > 0:
+            if self.vision.colliderect(player.rect) and player.health > 0:
                 self.idling = True
                 self.idling_counter = 10
                 self.speed = 2
@@ -948,7 +952,9 @@ class Demon(pygame.sprite.Sprite):
         # Ngăn chặn đập đầu dô tường
         if self.collision_rect.left + dx < 0 or self.collision_rect.right + dx > SCREEN_WIDTH:
             dx = 0
-
+        if self.rect.top > SCREEN_HEIGHT:
+            self.health = 0
+            dy = 0
         # Cập nhật vị trí của collision_rect
         self.collision_rect.x += dx
         self.collision_rect.y += dy
@@ -965,7 +971,7 @@ class Demon(pygame.sprite.Sprite):
             self.vision.x = self.rect.centerx
         self.vision.y = self.rect.y
         if self.health > 0:
-            if self.vision.colliderect(player.coin_collision) and player.health > 0:
+            if self.vision.colliderect(player.rect) and player.health > 0:
                 self.idling = True
                 self.idling_counter = 10
                 self.speed = 2
@@ -1100,7 +1106,7 @@ class Boss(pygame.sprite.Sprite):
         self.height = self.image.get_height()
         self.collision_rect = pygame.Rect(self.rect.centerx - 10 * scale, self.rect.centery + 20 * scale, 20 * scale, 60 * scale)
         # Define variable to check vision player
-        self.vision = pygame.Rect(0, 0, 250, self.height)
+        self.vision = pygame.Rect(0, 0, 500, self.height)
 
     def update_action(self, new_action):
         if self.action != new_action:
@@ -1161,7 +1167,9 @@ class Boss(pygame.sprite.Sprite):
         # Ngăn chặn đập đầu dô tường
         if self.collision_rect.left + dx < 0 or self.collision_rect.right + dx > SCREEN_WIDTH:
             dx = 0
-
+        if self.rect.top > SCREEN_HEIGHT:
+            self.health = 0
+            dy = 0
         # Cập nhật vị trí của collision_rect
         self.collision_rect.x += dx
         self.collision_rect.y += dy
@@ -1173,12 +1181,12 @@ class Boss(pygame.sprite.Sprite):
     def ai(self, player):
         # Chỗ này để cập nhật tầm nhìn của skeleton
         if self.direction == -1:
-            self.vision.x = self.rect.centerx + 250 * self.direction
+            self.vision.x = self.rect.centerx + 500 * self.direction
         else:
             self.vision.x = self.rect.centerx
         self.vision.y = self.rect.y
         if self.health > 0:
-            if self.vision.colliderect(player.coin_collision) and player.health > 0:
+            if self.vision.colliderect(player.rect) and player.health > 0:
                 self.idling = True
                 self.idling_counter = 10
                 self.speed = 2
@@ -1721,6 +1729,25 @@ def bullet_char(player):
     for i in range(player.bullet):
         screen.blit(bullet_image, (10 + i * 10, 100))
 
+def check_enmy_alive():
+    number_of_skeleton = 0
+    number_of_bigger = 0
+    number_of_demon = 0
+    number_of_boss = 0
+    for skeleton in skeleton_group:
+        if skeleton.health == 0:
+            number_of_skeleton += 1
+    for bigger in bigger_group:
+        if bigger.health == 0:
+            number_of_bigger += 1
+    for demon in demon_group:
+        if demon.health == 0:
+            number_of_demon += 1
+    for boss in boss_group:
+        if boss.health == 0:
+            number_of_boss += 1
+    return number_of_skeleton == len(skeleton_group) and number_of_bigger == len(bigger_group) and number_of_demon == len(demon_group) and number_of_boss == len(boss_group)
+
 # Tạo mảng data rỗng dùng để chứa dữ liệu thế giới
 world_data = []
 for row in range(ROWS):
@@ -1741,6 +1768,11 @@ player = world.process_data(world_data)
 GangsterMain = Player(835, 325, 1.5)
 CoinBarPlayer = CoinBar(10, 74)
 # Vòng lặp chính
+print(len(skeleton_group))
+print(len(bigger_group))
+print(len(demon_group))
+print(len(boss_group))
+
 running = True
 while running:
     # Cài đặt FPS
@@ -1767,8 +1799,8 @@ while running:
             running = False
         if play_game:
             draw_bg()
-            world.draw()
             draw_shop()
+            world.draw()
             draw_decoration()
             screen.blit(empty_heath_bar, (10, 10))
             CoinBarPlayer.draw()
@@ -1886,13 +1918,9 @@ while running:
 
                 # Kiểm tra coi người chơi có chạm vô cục next Level không
                 for pos in level_complete_group:
-                    if player.coin_collision.colliderect(pos.rect):
+                    if player.coin_collision.colliderect(pos.rect) and check_enmy_alive():
                         level += 1
-                        if play_audio == False:
-                                win_game.play()
-                                play_audio = True
                         if level < MAX_LEVELS:
-                            play_audio = False
                             bg_scroll = 0
                             world_data = reset_level()
                             # Tải level mới
@@ -1901,8 +1929,39 @@ while running:
                                 for x, row in enumerate(reader):
                                     for y, tile in enumerate(row):
                                         world_data[x][y] = int(tile)
+                            play_audio = False
                             world = World()
                             player = world.process_data(world_data)
+                        elif level == MAX_LEVELS + 1:
+                            if play_audio == False:
+                                win_game.play()
+                                play_audio = True
+                            screen.blit(win_game, (0, 0))
+                            if menu_btn.draw(screen):
+                                main_game = False
+                                play_game = False
+                                play_audio = False
+                                world_data = reset_level()
+                                # Tải level mới
+                                with open(f'Level/level{level}_data.csv', newline = '') as csvfile:
+                                    reader = csv.reader(csvfile, delimiter = ',')
+                                    for x, row in enumerate(reader):
+                                        for y, tile in enumerate(row):
+                                            world_data[x][y] = int(tile)
+                                world = World()
+                                player = world.process_data(world_data)
+                            if restart_btn.draw(screen):
+                                bg_scroll = 0
+                                play_audio = False
+                                world_data = reset_level()
+                                # Tải level mới
+                                with open(f'Level/level{level}_data.csv', newline = '') as csvfile:
+                                    reader = csv.reader(csvfile, delimiter = ',')
+                                    for x, row in enumerate(reader):
+                                        for y, tile in enumerate(row):
+                                            world_data[x][y] = int(tile)
+                                world = World()
+                                player = world.process_data(world_data)
 
                 if player.health <= 0:
                     if play_audio == False:
