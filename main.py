@@ -26,9 +26,9 @@ MAX_LEVELS = 5
 # Biến dùng để người chơi có thể nâng cấp
 speed_bullet = 0
 dame_bullet = 0
-health_bonus = 0
+health_bonus = 1500
 coin_player = 100000
-health_tile = 10
+health_tile = 100
 bullet_cooldown = 0
 # Biến dùng để chơi game
 main_game = False
@@ -173,7 +173,7 @@ level_complete_group = pygame.sprite.Group()
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, scale):
         pygame.sprite.Sprite.__init__(self)
-        animation_types = ['Idle', 'Run', 'Jump', 'Hurt', 'Shot', 'Dead', 'Recharge', 'Walk', 'Punch']
+        animation_types = ['Idle', 'Run', 'Jump', 'Hurt', 'Shot', 'Dead', 'Recharge', 'Walk']
         self.update_time = pygame.time.get_ticks()
         self.action = 0
         self.scale = scale
@@ -206,7 +206,6 @@ class Player(pygame.sprite.Sprite):
         self.in_air = False
         self.hurt = False
         self.shoot = False
-        self.punch = False
         self.rechange = False
         self.vel_y = 0
         # Ảnh và vị trí của player
@@ -247,8 +246,7 @@ class Player(pygame.sprite.Sprite):
                 self.shoot = False
             elif self.action == 6: # Recharge
                 self.bullet = self.max_bullet
-                self.update_action(0)
-            elif self.action == 8: # Punch
+                self.rechange = False
                 self.update_action(0)
             else:
                 self.frame_index = 0
@@ -320,8 +318,6 @@ class Player(pygame.sprite.Sprite):
             self.collision_rect.x -= dx
             screen_scroll = -dx
 
-
-
         return screen_scroll
 
     def gun(self):
@@ -343,7 +339,6 @@ class Player(pygame.sprite.Sprite):
             self.shoot = False
             self.move_jump = False
             self.in_air = False
-            self.punch = False
             self.run = False
         else:
             if self.run:
@@ -360,18 +355,14 @@ class Player(pygame.sprite.Sprite):
                 self.moving_left = False
                 self.moving_right = False
                 self.move_jump = False
-                self.punch = False
                 self.run = False
                 self.hurt = False
             elif self.moving_left or self.moving_right:
                 self.update_action(7)
-            elif self.punch:
-                self.update_action(8)
             else:
                 self.update_action(0)
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
-
     def draw(self):
         self.update_animation()
         self.update()
@@ -776,10 +767,16 @@ class Bigger(pygame.sprite.Sprite):
                     self.attack = True
                     if self.attack == True:
                         if self.dame_cooldown == 0:
-                            player.health -= 10
+                            player.health -= 25
                             print(player.health)
                             self.dame_cooldown = 100
                             punch.play()
+                            if player.direction == 1:
+                                    player.vel_y = -5
+                                    player.collision_rect.x -= 5
+                            else:
+                                player.vel_y = -5
+                                player.collision_rect.x += 5
                             if random.randint(1, 3) == 1:
                                 player.hurt = True
             else:
@@ -986,10 +983,16 @@ class Demon(pygame.sprite.Sprite):
                     self.attack = True
                     if self.attack == True:
                         if self.dame_cooldown == 0:
-                            player.health -= 10
+                            player.health -= 50
                             print(player.health)
                             self.dame_cooldown = 100
                             punch.play()
+                            if player.direction == 1:
+                                    player.vel_y = -5
+                                    player.collision_rect.x -= 20
+                            else:
+                                player.vel_y = -5
+                                player.collision_rect.x += 20
                             if random.randint(1, 3) == 1:
                                 player.hurt = True
             else:
@@ -1197,6 +1200,8 @@ class Boss(pygame.sprite.Sprite):
                             print(player.health)
                             self.dame_cooldown = 100
                             punch.play()
+                            player.vel_y = -20
+                            player.in_air = True
                             if random.randint(1, 3) == 1:
                                 player.hurt = True
             else:
@@ -1672,30 +1677,35 @@ def bullet_enemy(player):
             if bullet.rect.colliderect(skeleton.collision_rect):
                 if skeleton.health > 0:
                     skeleton.health -= player.dame + dame_bullet
-                    skeleton.hurt = True
+                    if random.randint(1, 3) == 1:
+                        skeleton.hurt = True
                     player.bullets.remove(bullet)
                     hurt.play()
         for bigger in bigger_group:
             if bullet.rect.colliderect(bigger.collision_rect):
                 if bigger.health > 0:
                     bigger.health -= player.dame + dame_bullet
-                    bigger.hurt = True
+                    if random.randint(1, 3) == 1:
+                        bigger.hurt = True
                     player.bullets.remove(bullet)
                     hurt.play()
         for demon in demon_group:
             if bullet.rect.colliderect(demon.collision_rect):
                 if demon.health > 0:
                     demon.health -= player.dame + dame_bullet
-                    demon.hurt = True
+                    if random.randint(1, 3) == 1:
+                        demon.hurt = True
                     player.bullets.remove(bullet)
                     hurt.play()
         for boss in boss_group:
             if bullet.rect.colliderect(boss.collision_rect):
                 if boss.health > 0:
-                    boss.health -= player.dame + dame_bullet
-                    boss.hurt = True
+                    boss.health -= 5
+                    if random.randint(1, 3) == 1:
+                        boss.hurt = True
                     player.bullets.remove(bullet)
                     hurt.play()
+
 
 def health_chart(player):
     number_tiles = player.health // health_tile
@@ -1842,7 +1852,7 @@ while running:
                             player.move_jump = True
                             jump.play()
                         if event.key == pygame.K_j:
-                            player.punch = True
+                            player.rechange = True
                         if event.key == pygame.K_LCTRL:
                             player.run = True
                         if event.key == pygame.K_SPACE and player.shoot_cooldown == 0 and player.bullet > 0:
@@ -1856,8 +1866,6 @@ while running:
                             player.moving_right = False
                         if event.key == pygame.K_w:
                             player.move_jump = False
-                        if event.key == pygame.K_j:
-                            player.punch = False
                         if event.key == pygame.K_LCTRL:
                             player.run = False
 
